@@ -1,0 +1,16 @@
+# Placeholder untuk app icon
+# File ini akan diganti dengan gambar ikon sebenarnya
+# Untuk sementara, aplikasi akan menggunakan ikon default Flutter
+# 
+# Instruksi membuat ikon:
+# 1. Buat gambar 1024x1024 dengan background biru gradient
+# 2. Tambahkan ikon wallet/dompet berwarna putih di tengah
+# 3. Simpan sebagai app_icon.png
+# 4. Jalankan: flutter pub run flutter_launcher_icons:main
+#
+# Warna yang disarankan:
+# - Background: Linear gradient dari #29B6F6 ke #0288D1
+# - Icon: #FFFFFF (putih)
+# - Shadow: rgba(0,0,0,0.2)
+
+PLACEHOLDER_FOR_APP_ICON

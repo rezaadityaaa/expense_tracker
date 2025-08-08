@@ -1,0 +1,64 @@
+name: expense_tracker
+description: A beautiful Flutter app for tracking daily expenses with modern UI and dark theme support.
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  
+  # Database
+  sqflite: ^2.3.0       # Plugin utama untuk menggunakan SQLite
+  path_provider: ^2.1.1  # Membantu menemukan path (lokasi) untuk menyimpan database
+  path: ^1.9.0          # Untuk path operations
+  
+  # State Management (opsional, tapi disarankan)
+  provider: ^6.0.5     # Contoh manajemen state yang sederhana dan populer
+  
+  # Formatting Tanggal dan Mata Uang
+  intl: ^0.18.1        # Memformat tanggal dan angka secara internasional
+  
+  # Ikon (opsional)
+  font_awesome_flutter: ^10.5.0 # Koleksi ikon yang kaya untuk kategori
+  
+  # HTTP Request (opsional, jika Anda ingin mengelola gambar receipt secara online)
+  http: ^1.1.0         # Untuk mengambil atau mengunggah data melalui HTTP
+  
+  # UI (opsional, untuk tampilan yang lebih menarik)
+  flutter_slidable: ^3.0.1 # Widget untuk menggeser item list (misalnya, untuk menghapus)
+  
+  # Authentication & Storage
+  shared_preferences: ^2.2.2 # Untuk menyimpan session login
+  
+  # Export functionality
+  csv: ^6.0.0               # Untuk export data ke CSV format
+  
+  # App Icon Generator
+  flutter_launcher_icons: ^0.14.4
+  
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  flutter_lints: ^2.0.0
+
+# Configuration for flutter_launcher_icons
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: true
+  image_path: "assets/icons/app_icon.png"
+  remove_alpha_ios: true
+  adaptive_icon_background: "#fff9c4"
+  adaptive_icon_foreground: "assets/icons/app_icon.png"
+
+flutter:
+  uses-material-design: true
+  
+  # Assets
+  assets:
+    - assets/images/
+    - assets/icons/

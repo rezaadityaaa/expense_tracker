@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="512" height="512" fill="#4CAF50" rx="64"/>
+  
+  <!-- Wallet Icon -->
+  <g transform="translate(256,256)">
+    <!-- Wallet body -->
+    <rect x="-120" y="-60" width="240" height="120" fill="white" rx="20"/>
+    <rect x="-110" y="-50" width="220" height="100" fill="#2E7D32" rx="15"/>
+    
+    <!-- Wallet opening -->
+    <rect x="-100" y="-30" width="200" height="10" fill="white" rx="5"/>
+    
+    <!-- Money symbol -->
+    <text x="0" y="15" text-anchor="middle" font-family="Arial, sans-serif" font-size="48" font-weight="bold" fill="white">$</text>
+  </g>
+</svg>
