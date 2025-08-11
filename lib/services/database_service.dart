@@ -33,7 +33,7 @@ class DatabaseService {
     //   print('DatabaseService: No existing database to delete: $e');
     // }
 
-    return await openDatabase(path, version: 2, onCreate: (db, version) async {
+    return await openDatabase(path, version: 3, onCreate: (db, version) async {
       await db.execute('''
           CREATE TABLE users(
             user_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -73,6 +73,7 @@ class DatabaseService {
             description TEXT NOT NULL,
             expense_date TEXT NOT NULL,
             payment_method TEXT,
+            money_type TEXT DEFAULT 'cash',
             location TEXT,
             receipt_url TEXT,
             notes TEXT,
@@ -173,6 +174,12 @@ class DatabaseService {
         'created_at': DateTime.now().toIso8601String(),
         'is_active': 1,
       });
+    }, onUpgrade: (db, oldVersion, newVersion) async {
+      // Migrasi dari versi 2 ke 3: tambahkan kolom money_type
+      if (oldVersion < 3) {
+        await db.execute(
+            'ALTER TABLE expenses ADD COLUMN money_type TEXT DEFAULT "cash"');
+      }
     }, onConfigure: (db) async {
       await db.execute('PRAGMA foreign_keys = ON');
     });

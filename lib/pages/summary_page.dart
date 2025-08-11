@@ -4,9 +4,26 @@ import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/expense.dart';
 import '../models/category.dart';
+import '../models/money_type.dart';
 import '../services/database_service.dart';
 import 'add_expense_page.dart';
 import 'balance_history_page.dart';
+
+class BreakdownItem {
+  final String type;
+  final double amount;
+  final double percentage;
+  final String icon;
+  final Color color;
+
+  BreakdownItem({
+    required this.type,
+    required this.amount,
+    required this.percentage,
+    required this.icon,
+    required this.color,
+  });
+}
 
 class SummaryPage extends StatefulWidget {
   const SummaryPage({super.key});
@@ -21,6 +38,8 @@ class _SummaryPageState extends State<SummaryPage> {
   late Future<List<Category>> _categories;
 
   double _totalBalance = 1000000; // Saldo total default
+  double _cashBalance = 500000; // Cash balance default
+  double _digitalBalance = 500000; // Digital/Saldo balance default
   String _selectedPeriod = 'Bulanan';
 
   final int _currentUserId = 1;
@@ -44,17 +63,22 @@ class _SummaryPageState extends State<SummaryPage> {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
       _totalBalance = prefs.getDouble('totalBalance') ?? 1000000;
+      _cashBalance = prefs.getDouble('cashBalance') ?? 500000;
+      _digitalBalance = prefs.getDouble('digitalBalance') ?? 500000;
     });
   }
 
   Future<void> _saveBalance() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setDouble('totalBalance', _totalBalance);
+    await prefs.setDouble('cashBalance', _cashBalance);
+    await prefs.setDouble('digitalBalance', _digitalBalance);
   }
 
   void _showBalanceDialog() {
-    final totalController =
-        TextEditingController(text: _totalBalance.toString());
+    final cashController = TextEditingController(text: _cashBalance.toString());
+    final digitalController =
+        TextEditingController(text: _digitalBalance.toString());
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
     showDialog(
@@ -70,19 +94,59 @@ class _SummaryPageState extends State<SummaryPage> {
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            // Cash Balance Field
             TextField(
-              controller: totalController,
+              controller: cashController,
               keyboardType: TextInputType.number,
               style: TextStyle(
                 color: isDarkMode ? Colors.white : Colors.black,
               ),
               decoration: InputDecoration(
-                labelText: 'Saldo Mingguan',
+                labelText: 'Cash Balance',
                 labelStyle: TextStyle(
                   color:
                       isDarkMode ? Colors.grey.shade400 : Colors.grey.shade600,
                 ),
-                prefixText: 'Rp ',
+                prefixText: '💵 Rp ',
+                prefixStyle: TextStyle(
+                  color: isDarkMode
+                      ? Colors.green.shade300
+                      : Colors.green.shade600,
+                ),
+                border: OutlineInputBorder(
+                  borderSide: BorderSide(
+                    color: isDarkMode
+                        ? Colors.grey.shade600
+                        : Colors.grey.shade400,
+                  ),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderSide: BorderSide(
+                    color: isDarkMode
+                        ? Colors.green.shade300
+                        : Colors.green.shade600,
+                  ),
+                ),
+                filled: true,
+                fillColor:
+                    isDarkMode ? Colors.grey.shade700 : Colors.grey.shade50,
+              ),
+            ),
+            const SizedBox(height: 16),
+            // Digital Balance Field
+            TextField(
+              controller: digitalController,
+              keyboardType: TextInputType.number,
+              style: TextStyle(
+                color: isDarkMode ? Colors.white : Colors.black,
+              ),
+              decoration: InputDecoration(
+                labelText: 'Saldo Digital',
+                labelStyle: TextStyle(
+                  color:
+                      isDarkMode ? Colors.grey.shade400 : Colors.grey.shade600,
+                ),
+                prefixText: '💳 Rp ',
                 prefixStyle: TextStyle(
                   color:
                       isDarkMode ? Colors.blue.shade300 : Colors.blue.shade600,
@@ -119,33 +183,21 @@ class _SummaryPageState extends State<SummaryPage> {
                       isDarkMode ? Colors.blue.shade600 : Colors.blue.shade200,
                 ),
               ),
-              child: Row(
-                children: [
-                  Icon(Icons.info_outline,
-                      color: isDarkMode
-                          ? Colors.blue.shade300
-                          : Colors.blue.shade700,
-                      size: 20),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      'Saldo akan otomatis direset setiap hari Senin dengan nilai awal = saldo tersisa minggu sebelumnya',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: isDarkMode
-                            ? Colors.blue.shade300
-                            : Colors.blue.shade700,
-                      ),
-                    ),
-                  ),
-                ],
+              child: Text(
+                'Saldo ini akan menjadi saldo awal untuk minggu ini. Perubahan akan disimpan secara otomatis.',
+                style: TextStyle(
+                  fontSize: 12,
+                  color:
+                      isDarkMode ? Colors.blue.shade200 : Colors.blue.shade700,
+                ),
+                textAlign: TextAlign.center,
               ),
             ),
           ],
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.of(context).pop(),
             child: Text(
               'Batal',
               style: TextStyle(
@@ -154,17 +206,28 @@ class _SummaryPageState extends State<SummaryPage> {
             ),
           ),
           ElevatedButton(
-            onPressed: () {
+            onPressed: () async {
               setState(() {
+                _cashBalance =
+                    double.tryParse(cashController.text) ?? _cashBalance;
+                _digitalBalance =
+                    double.tryParse(digitalController.text) ?? _digitalBalance;
                 _totalBalance =
-                    double.tryParse(totalController.text) ?? _totalBalance;
+                    _cashBalance + _digitalBalance; // Update total balance
               });
-              _saveBalance();
-              Navigator.pop(context);
+              await _saveBalance();
+              if (mounted) {
+                Navigator.of(context).pop();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: const Text('Saldo berhasil diperbarui'),
+                    backgroundColor: Colors.green,
+                  ),
+                );
+              }
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor:
-                  isDarkMode ? Colors.blue.shade700 : Colors.blue.shade600,
+              backgroundColor: isDarkMode ? Colors.blue.shade600 : Colors.blue,
               foregroundColor: Colors.white,
             ),
             child: const Text('Simpan'),
@@ -565,7 +628,9 @@ class _SummaryPageState extends State<SummaryPage> {
     return FutureBuilder<List<Expense>>(
       future: _allExpenses,
       builder: (context, snapshot) {
-        double totalExpenses = 0;
+        double totalCashExpenses = 0;
+        double totalDigitalExpenses = 0;
+
         if (snapshot.hasData) {
           // Hitung total pengeluaran dari awal minggu ini sampai sekarang
           final now = DateTime.now();
@@ -577,15 +642,33 @@ class _SummaryPageState extends State<SummaryPage> {
                 expense.expenseDate.isBefore(now.add(const Duration(days: 1)));
           }).toList();
 
-          totalExpenses =
-              thisWeekExpenses.fold(0, (sum, expense) => sum + expense.amount);
+          // Pisahkan berdasarkan money type
+          totalCashExpenses = thisWeekExpenses
+              .where((expense) => expense.moneyType == MoneyType.cash)
+              .fold(0, (sum, expense) => sum + expense.amount);
 
-          print(
-              'This week expenses: ${thisWeekExpenses.length}, Total: $totalExpenses');
-          print('Start of week: $startOfThisWeek, Now: $now');
+          totalDigitalExpenses = thisWeekExpenses
+              .where((expense) => expense.moneyType == MoneyType.balance)
+              .fold(0, (sum, expense) => sum + expense.amount);
+
+          print('This week Cash expenses: $totalCashExpenses');
+          print('This week Digital expenses: $totalDigitalExpenses');
         }
 
-        final remainingBalance = _totalBalance - totalExpenses;
+        // Hitung total dana dan sisa
+        final totalWeeklyBalance = _cashBalance + _digitalBalance;
+        final totalExpenses = totalCashExpenses + totalDigitalExpenses;
+        final remainingBalance = totalWeeklyBalance - totalExpenses;
+        final remainingCash = _cashBalance - totalCashExpenses;
+        final remainingDigital = _digitalBalance - totalDigitalExpenses;
+
+        // Hitung persentase
+        final cashPercentage = remainingBalance > 0
+            ? (remainingCash / remainingBalance * 100)
+            : 0.0;
+        final digitalPercentage = remainingBalance > 0
+            ? (remainingDigital / remainingBalance * 100)
+            : 0.0;
 
         return Column(
           children: [
@@ -606,35 +689,153 @@ class _SummaryPageState extends State<SummaryPage> {
               ],
             ),
             const SizedBox(height: 12),
+
+            // Dana Mingguan & Dana Tersisa (Main Cards)
             Row(
               children: [
                 Expanded(
                   child: _buildBalanceCard(
-                    'Saldo Mingguan',
-                    _totalBalance,
+                    'Dana Mingguan',
+                    totalWeeklyBalance,
                     Colors.blue,
-                    Icons.account_balance,
-                    subtitle: 'Saldo awal minggu ini',
+                    Icons.account_balance_wallet,
+                    subtitle: 'Total dana awal minggu',
                   ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: SizedBox(
-                    height: 130,
-                    child: _buildBalanceCard(
-                      'Saldo Tersisa',
-                      remainingBalance,
-                      remainingBalance >= 0 ? Colors.green : Colors.red,
-                      remainingBalance >= 0 ? Icons.wallet : Icons.warning,
-                      subtitle: 'Saldo sisa minggu ini',
-                    ),
+                  child: _buildBalanceCard(
+                    'Dana Tersisa',
+                    remainingBalance,
+                    remainingBalance >= 0 ? Colors.green : Colors.red,
+                    remainingBalance >= 0 ? Icons.wallet : Icons.warning,
+                    subtitle: 'Sisa setelah pengeluaran',
                   ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 16),
+
+            // Breakdown Cash & Digital
+            _buildBreakdownCard(
+              'Breakdown Dana Tersisa',
+              [
+                BreakdownItem(
+                  type: 'Cash',
+                  amount: remainingCash,
+                  percentage: cashPercentage,
+                  icon: '💵',
+                  color: Colors.green,
+                ),
+                BreakdownItem(
+                  type: 'Saldo Digital',
+                  amount: remainingDigital,
+                  percentage: digitalPercentage,
+                  icon: '💳',
+                  color: Colors.blue,
                 ),
               ],
             ),
           ],
         );
       },
+    );
+  }
+
+  Widget _buildBreakdownCard(String title, List<BreakdownItem> items) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final cardColor = isDarkMode ? Theme.of(context).cardColor : Colors.white;
+    final textColor = isDarkMode ? Colors.white : Colors.black87;
+
+    return Card(
+      color: cardColor,
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(
+                  Icons.pie_chart,
+                  color: isDarkMode
+                      ? Colors.orange.shade300
+                      : Colors.orange.shade600,
+                  size: 20,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: textColor,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            ...items.map((item) => _buildBreakdownItem(item, textColor)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBreakdownItem(BreakdownItem item, Color textColor) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        children: [
+          Text(
+            item.icon,
+            style: const TextStyle(fontSize: 20),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  item.type,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    color: textColor,
+                  ),
+                ),
+                Text(
+                  'Rp ${NumberFormat('#,###').format(item.amount)}',
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: item.color,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: BoxDecoration(
+              color: item.color.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: item.color.withOpacity(0.3)),
+            ),
+            child: Text(
+              '${item.percentage.toStringAsFixed(1)}%',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                color: item.color,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 

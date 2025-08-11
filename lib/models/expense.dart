@@ -1,3 +1,5 @@
+import 'money_type.dart';
+
 class Expense {
   final int? expenseId;
   final int userId;
@@ -6,6 +8,7 @@ class Expense {
   final String description;
   final DateTime expenseDate;
   final String paymentMethod;
+  final MoneyType moneyType;
   final String? location;
   final String? receiptUrl;
   final String? notes;
@@ -21,6 +24,7 @@ class Expense {
     required this.description,
     required this.expenseDate,
     this.paymentMethod = 'cash',
+    this.moneyType = MoneyType.cash,
     this.location,
     this.receiptUrl,
     this.notes,
@@ -38,6 +42,7 @@ class Expense {
       'description': description,
       'expense_date': expenseDate.toIso8601String(),
       'payment_method': paymentMethod,
+      'money_type': moneyType.value,
       'location': location,
       'receipt_url': receiptUrl,
       'notes': notes,
@@ -56,6 +61,7 @@ class Expense {
       description: map['description'],
       expenseDate: DateTime.parse(map['expense_date']),
       paymentMethod: map['payment_method'],
+      moneyType: MoneyType.fromString(map['money_type'] ?? 'cash'),
       location: map['location'],
       receiptUrl: map['receipt_url'],
       notes: map['notes'],

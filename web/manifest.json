@@ -1,11 +1,11 @@
 {
-    "name": "note_apk",
-    "short_name": "note_apk",
+    "name": "My Money",
+    "short_name": "My Money",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "description": "A beautiful Flutter app for tracking daily expenses with modern UI and dark theme support.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

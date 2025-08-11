@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import '../models/category.dart';
 import '../models/expense.dart';
+import '../models/money_type.dart';
 import '../services/database_service.dart';
 import '../services/balance_reset_service.dart';
 
@@ -20,6 +21,7 @@ class _AddExpensePageState extends State<AddExpensePage> {
 
   late Future<List<Category>> _categories;
   Category? _selectedCategory;
+  MoneyType _selectedMoneyType = MoneyType.cash;
   final TextEditingController _descriptionController = TextEditingController();
   final TextEditingController _amountController = TextEditingController();
   DateTime _selectedDate = DateTime.now();
@@ -181,6 +183,7 @@ class _AddExpensePageState extends State<AddExpensePage> {
         amount: expenseAmount,
         description: _descriptionController.text,
         expenseDate: _selectedDate,
+        moneyType: _selectedMoneyType,
         createdAt: DateTime.now(),
       );
 
@@ -291,6 +294,11 @@ class _AddExpensePageState extends State<AddExpensePage> {
                   }
                 },
               ),
+
+              const SizedBox(height: 20),
+
+              // Money Type Card
+              _buildMoneyTypeCard(),
 
               const SizedBox(height: 20),
 
@@ -756,6 +764,121 @@ class _AddExpensePageState extends State<AddExpensePage> {
     );
   }
 
+  Widget _buildMoneyTypeCard() {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final cardColor = isDarkMode ? Theme.of(context).cardColor : Colors.white;
+    final borderColor =
+        isDarkMode ? Colors.grey.shade600 : Colors.grey.shade300;
+    final fillColor = isDarkMode ? Colors.grey.shade800 : Colors.grey.shade50;
+    final textColor = isDarkMode ? Colors.white : Colors.black87;
+
+    return Card(
+      color: cardColor,
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(
+                  Icons.payment,
+                  color: isDarkMode
+                      ? Colors.orange.shade300
+                      : Colors.orange.shade600,
+                  size: 20,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  'Tipe Uang',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: textColor,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            DropdownButtonFormField<MoneyType>(
+              decoration: InputDecoration(
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide(color: borderColor),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide(
+                    color: isDarkMode
+                        ? Colors.orange.shade300
+                        : Colors.orange.shade600,
+                    width: 2,
+                  ),
+                ),
+                filled: true,
+                fillColor: fillColor,
+                contentPadding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                isDense: true,
+              ),
+              value: _selectedMoneyType,
+              hint: Text(
+                'Pilih tipe uang',
+                style: TextStyle(
+                  color:
+                      isDarkMode ? Colors.grey.shade400 : Colors.grey.shade600,
+                ),
+              ),
+              dropdownColor: isDarkMode ? Colors.grey.shade800 : Colors.white,
+              style: TextStyle(
+                color: textColor,
+                fontSize: 14,
+              ),
+              items: MoneyType.values.map((MoneyType type) {
+                return DropdownMenuItem<MoneyType>(
+                  value: type,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        type.icon,
+                        style: const TextStyle(fontSize: 18),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        type.displayName,
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: textColor,
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }).toList(),
+              onChanged: (MoneyType? newValue) {
+                if (newValue != null) {
+                  setState(() {
+                    _selectedMoneyType = newValue;
+                  });
+                }
+              },
+              validator: (value) {
+                if (value == null) {
+                  return 'Pilih tipe uang';
+                }
+                return null;
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildDescriptionCard() {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     final cardColor = isDarkMode ? Theme.of(context).cardColor : Colors.white;
@@ -896,11 +1019,8 @@ class _AddExpensePageState extends State<AddExpensePage> {
               alignment: WrapAlignment.start,
               children: [
                 5000,
-                10000,
                 15000,
                 20000,
-                50000,
-                100000,
               ].map((amount) {
                 return ConstrainedBox(
                   constraints: const BoxConstraints(
