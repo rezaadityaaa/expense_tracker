@@ -1,6 +1,7 @@
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 import '../models/expense.dart';
+import '../models/expense_with_category.dart';
 import '../models/category.dart';
 
 class DatabaseService {
@@ -200,6 +201,24 @@ class DatabaseService {
       orderBy: 'expense_date DESC',
     );
     return List.generate(maps.length, (i) => Expense.fromMap(maps[i]));
+  }
+
+  Future<List<ExpenseWithCategory>> getExpensesByDateRange(
+      DateTime startDate, DateTime endDate) async {
+    final db = await database;
+    final List<Map<String, dynamic>> maps = await db.rawQuery('''
+      SELECT 
+        e.*,
+        c.name as category_name
+      FROM expenses e
+      LEFT JOIN categories c ON e.category_id = c.category_id
+      WHERE e.user_id = ? AND e.is_deleted = 0 
+        AND e.expense_date >= ? AND e.expense_date <= ?
+      ORDER BY e.expense_date DESC
+    ''', [1, startDate.toIso8601String(), endDate.toIso8601String()]);
+
+    return List.generate(
+        maps.length, (i) => ExpenseWithCategory.fromMap(maps[i]));
   }
 
   Future<int> updateExpense(Expense expense) async {

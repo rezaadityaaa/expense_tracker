@@ -191,7 +191,7 @@ class _SplashScreenState extends State<SplashScreen>
                   child: Column(
                     children: [
                       Text(
-                        'Expense Tracker',
+                        'Tracker Money',
                         style: TextStyle(
                           fontSize: 32,
                           fontWeight: FontWeight.bold,

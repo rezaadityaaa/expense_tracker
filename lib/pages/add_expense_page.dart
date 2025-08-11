@@ -265,11 +265,6 @@ class _AddExpensePageState extends State<AddExpensePage> {
 
               const SizedBox(height: 24),
 
-              // Amount Input dengan design menarik
-              _buildAmountCard(),
-
-              const SizedBox(height: 20),
-
               // Date dan Category - responsif layout
               LayoutBuilder(
                 builder: (context, constraints) {
@@ -297,6 +292,16 @@ class _AddExpensePageState extends State<AddExpensePage> {
 
               const SizedBox(height: 20),
 
+              // Quick amount buttons
+              _buildQuickAmountButtons(),
+
+              const SizedBox(height: 20),
+
+              // Amount Input dengan design menarik
+              _buildAmountCard(),
+
+              const SizedBox(height: 20),
+
               // Money Type Card
               _buildMoneyTypeCard(),
 
@@ -304,11 +309,6 @@ class _AddExpensePageState extends State<AddExpensePage> {
 
               // Description Card
               _buildDescriptionCard(),
-
-              const SizedBox(height: 20),
-
-              // Quick amount buttons
-              _buildQuickAmountButtons(),
 
               const SizedBox(height: 32),
 

@@ -157,7 +157,7 @@ class BalanceResetService {
   /// Load current balance
   Future<double> loadBalance() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getDouble('totalBalance') ?? 1000000.0;
+    return prefs.getDouble('totalBalance') ?? 0.0;
   }
 
   /// Calculate remaining balance (total balance - current week expenses)

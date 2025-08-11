@@ -1,5 +1,5 @@
-name: expense_tracker
-description: A beautiful Flutter app for tracking daily expenses with modern UI and dark theme support.
+name: tracker_money
+description: Tracker Money - A beautiful Flutter app for tracking daily expenses with modern UI and dark theme support.
 publish_to: 'none'
 
 version: 1.0.0+1

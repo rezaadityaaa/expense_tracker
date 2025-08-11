@@ -37,9 +37,9 @@ class _SummaryPageState extends State<SummaryPage> {
   late Future<List<Expense>> _allExpenses;
   late Future<List<Category>> _categories;
 
-  double _totalBalance = 1000000; // Saldo total default
-  double _cashBalance = 500000; // Cash balance default
-  double _digitalBalance = 500000; // Digital/Saldo balance default
+  double _totalBalance = 0; // Saldo total default
+  double _cashBalance = 0; // Cash balance default
+  double _digitalBalance = 0; // Digital/Saldo balance default
   String _selectedPeriod = 'Bulanan';
 
   final int _currentUserId = 1;
@@ -62,9 +62,9 @@ class _SummaryPageState extends State<SummaryPage> {
   Future<void> _loadBalance() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
-      _totalBalance = prefs.getDouble('totalBalance') ?? 1000000;
-      _cashBalance = prefs.getDouble('cashBalance') ?? 500000;
-      _digitalBalance = prefs.getDouble('digitalBalance') ?? 500000;
+      _totalBalance = prefs.getDouble('totalBalance') ?? 0;
+      _cashBalance = prefs.getDouble('cashBalance') ?? 0;
+      _digitalBalance = prefs.getDouble('digitalBalance') ?? 0;
     });
   }
 
@@ -240,6 +240,7 @@ class _SummaryPageState extends State<SummaryPage> {
   void _showAddBalanceDialog() {
     final addAmountController = TextEditingController();
     String selectedType = 'Gaji'; // Default type
+    MoneyType selectedMoneyType = MoneyType.cash; // Default money type
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
     final balanceTypes = [
@@ -318,6 +319,67 @@ class _SummaryPageState extends State<SummaryPage> {
                 autofocus: true,
               ),
               const SizedBox(height: 16),
+
+              // Money Type Selection
+              Text(
+                'Jenis Dana:',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: isDarkMode ? Colors.white : Colors.black,
+                    ),
+              ),
+              const SizedBox(height: 8),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                decoration: BoxDecoration(
+                  border: Border.all(
+                    color: isDarkMode
+                        ? Colors.grey.shade600
+                        : Colors.grey.shade400,
+                  ),
+                  borderRadius: BorderRadius.circular(4),
+                  color: isDarkMode ? Colors.grey.shade700 : Colors.white,
+                ),
+                child: DropdownButtonHideUnderline(
+                  child: DropdownButton<MoneyType>(
+                    value: selectedMoneyType,
+                    isExpanded: true,
+                    dropdownColor:
+                        isDarkMode ? Colors.grey.shade800 : Colors.white,
+                    style: TextStyle(
+                      color: isDarkMode ? Colors.white : Colors.black,
+                    ),
+                    items: MoneyType.values.map((MoneyType type) {
+                      return DropdownMenuItem<MoneyType>(
+                        value: type,
+                        child: Row(
+                          children: [
+                            Text(
+                              type.icon,
+                              style: const TextStyle(fontSize: 18),
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              type.displayName,
+                              style: TextStyle(
+                                color: isDarkMode ? Colors.white : Colors.black,
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    }).toList(),
+                    onChanged: (MoneyType? newValue) {
+                      setDialogState(() {
+                        selectedMoneyType = newValue!;
+                      });
+                    },
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+
               Text(
                 'Jenis Pemasukan:',
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
@@ -413,7 +475,7 @@ class _SummaryPageState extends State<SummaryPage> {
               onPressed: () {
                 final amount = double.tryParse(addAmountController.text);
                 if (amount != null && amount > 0) {
-                  _addBalance(amount, selectedType);
+                  _addBalance(amount, selectedType, selectedMoneyType);
                   Navigator.pop(context);
                 } else {
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -437,9 +499,14 @@ class _SummaryPageState extends State<SummaryPage> {
     );
   }
 
-  void _addBalance(double amount, String type) {
+  void _addBalance(double amount, String type, MoneyType moneyType) {
     setState(() {
-      _totalBalance += amount;
+      if (moneyType == MoneyType.cash) {
+        _cashBalance += amount;
+      } else {
+        _digitalBalance += amount;
+      }
+      _totalBalance = _cashBalance + _digitalBalance;
     });
     _saveBalance();
     _saveBalanceHistory(amount, type);
@@ -447,22 +514,27 @@ class _SummaryPageState extends State<SummaryPage> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
-            'Saldo berhasil ditambah Rp ${NumberFormat('#,###').format(amount)}'),
+            '${moneyType.displayName} berhasil ditambah Rp ${NumberFormat('#,###').format(amount)}'),
         backgroundColor: Colors.green,
         action: SnackBarAction(
           label: 'Undo',
           textColor: Colors.white,
           onPressed: () {
-            _undoAddBalance(amount);
+            _undoAddBalance(amount, moneyType);
           },
         ),
       ),
     );
   }
 
-  void _undoAddBalance(double amount) {
+  void _undoAddBalance(double amount, MoneyType moneyType) {
     setState(() {
-      _totalBalance -= amount;
+      if (moneyType == MoneyType.cash) {
+        _cashBalance -= amount;
+      } else {
+        _digitalBalance -= amount;
+      }
+      _totalBalance = _cashBalance + _digitalBalance;
     });
     _saveBalance();
 
